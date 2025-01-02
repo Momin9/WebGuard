@@ -451,9 +451,8 @@ def feedback(request):
     return render(request, 'feedback.html', {'vulnerabilities': vulnerabilities})
 
 
-# Set your OpenAI API key
-OPENAI_API_KEY = ""  # Replace with your actual OpenAI API key
-
+import os
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 def generate_custom_report(request):
     report = None
