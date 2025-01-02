@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+/* CSS Variables */
+
+:root {
+    --primary-color: #0A335D;
+    --secondary-color: #00C0E4;
+    --body-font-color: #000;
+
+    --linear-gradient: linear-gradient(180deg, #552501 0%, #A54805 100%);
+
+    --font-family: "Nunito", sans-serif;
+
+    --large-font-size: 2.81rem;
+    --medium-font-size: 1.9rem;
+    --font-size: 1.3rem;
+    --small-font-size: 1.1rem;
+
+
+    @media only screen and (max-width: 850px) {
+        --large-font-size: 2.5rem;
+        --medium-font-size: 1.5rem;
+        --font-size: 0.9rem;
+        --small-font-size: 0.75rem;
+    }
+
+    @media only screen and (max-width: 420px) {
+        --large-font-size: 2.1rem;
+        --medium-font-size: 1.4rem;
+        --font-size: 0.85rem;
+        --small-font-size: 0.7rem;
+    }
+}
+
+/*#region =========    General Layout   ============  */
+
+html {
+    scroll-behavior: smooth;
+    font-family: var(--font-family);
+}
+
+body {
+    background-color: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+    color: #fff;
+}
+
+li {
+    list-style: none;
+}
+
+i {
+    cursor: pointer;
+}
+
+/*#endregion  */
+
+/* ================= Header =================== */
+
+/*#region */
+
+header {
+    background-color: var(--primary-color);
+    box-shadow: #1e1e396b 0px 6px 12px -2px, #0000006c 0px 3px 7px -3px;
+
+
+}
+
+.navbar {
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 18%;
+}
+
+.logo a {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.logo a img {
+    width: 90%;
+}
+
+.menu {
+    width: 85%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu ul {
+    width: 75%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+ul li {
+    list-style: none;
+    transition: all 0.3s ease-in-out;
+}
+
+ul li a {
+    display: block;
+    text-decoration: none;
+    color: #fff;
+    padding: 0 2.3rem;
+    font-size: var(--small-font-size);
+    font-weight: 600;
+    transition: all 0.3s ease-in-out;
+}
+
+ul li a.active {
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+ul>li:hover>a {
+    color: var(--secondary-color);
+}
+
+.menu .link-btn {
+    padding: 0.6rem 1.1rem;
+    border-radius: 1.2rem;
+    background-color: var(--secondary-color);
+}
+
+.menu .link-btn i {
+    color: #fff;
+    margin-left: 0.3rem;
+}
+
+
+/* ======================================================================= */
+
+
+.welcome-box {
+    height: 100vh;
+    margin-top: 5rem;
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    text-align: center;
+}
+
+.welcome-box .text {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--medium-font-size);
+    color: #1d1b31;
+}
+
+.welcome-box .gupshup {
+    font-size: var(--large-font-size);
+    color: #53506b;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.welcome-box .input-box {
+    background-color: #fff;
+    border-radius: 0.6rem;
+    display: flex;
+    width: 60%;
+    padding: 4rem 2rem;
+    height: fit-content;
+}
+
+.welcome-box .input-box input {
+    width: 92%;
+    padding: 0.7rem 1rem;
+    background: transparent;
+    border: 1px solid #c3c3c3;
+    outline: none;
+    color: white;
+    border-radius: 1.2rem;
+    font-size: var(--small-font-size);
+
+}
+
+.welcome-box .input-box input::placeholder {
+    font-size: var(--small-font-size);
+}
+
+.welcome-box .input-box button {
+    width: 6%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background-color: transparent;
+    justify-content: flex-end;
+}
+
+.welcome-box .input-box button i {
+    font-size: 2rem;
+}
+
+
+
+/*#region ===========================   Output  ============================================ */
+.container {
+    width: 50%;
+    height: auto;
+    background: #1e1e1e;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: #e6e6e6;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 4rem auto;
+}
+
+.terminal_toolbar {
+    display: flex;
+    height: 30px;
+    align-items: center;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    background: #212121;
+    justify-content: space-between;
+}
+
+.butt {
+    display: flex;
+    align-items: center;
+}
+
+.btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin-right: 5px;
+    font-size: 8px;
+    height: 12px;
+    width: 12px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 100%;
+    background: linear-gradient(#7d7871 0%, #595953 100%);
+    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.2);
+    box-shadow: 0px 0px 1px 0px #41403a, 0px 1px 1px 0px #474642;
+}
+
+.btn-color {
+    background: #ee411a;
+}
+
+.btn:hover {
+    cursor: pointer;
+}
+
+.btn:focus {
+    outline: none;
+}
+
+.butt--exit {
+    background: linear-gradient(#f37458 0%, #de4c12 100%);
+}
+
+.add_tab {
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 0 6px;
+    border-radius: 4px 4px 0 0;
+    border-bottom: none;
+    cursor: pointer;
+}
+
+.user {
+    color: #d5d0ce;
+    margin-left: 6px;
+    font-size: 14px;
+    line-height: 15px;
+}
+
+.terminal_body {
+    background: rgba(0, 0, 0, 0.6);
+    height: calc(100% - 30px);
+    padding-top: 2px;
+    margin-top: -1px;
+    font-size: 12px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.url{
+    color: var(--secondary-color);
+}
+
+.terminal_prompt {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+
+.terminal_prompt span {
+    margin-left: 4px;
+}
+
+.terminal_user {
+    color: #1eff8e;
+}
+
+.terminal_location {
+    color: #4878c0;
+}
+
+.terminal_bling {
+    color: #dddddd;
+}
+
+.terminal_cursor {
+    display: block;
+    height: 14px;
+    width: 5px;
+    margin-left: 10px;
+    animation: curbl 1200ms linear infinite;
+}
+
+.terminal_output {
+    padding: 4px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.output_text {
+    margin: 0;
+}
+
+@keyframes curbl {
+    0% {
+        background: #ffffff;
+    }
+
+    49% {
+        background: #ffffff;
+    }
+
+    60% {
+        background: transparent;
+    }
+
+    99% {
+        background: transparent;
+    }
+
+    100% {
+        background: #ffffff;
+    }
+}
+
+/*#endregion ======================================================================= */
