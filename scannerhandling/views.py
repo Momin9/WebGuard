@@ -452,7 +452,7 @@ def feedback(request):
 
 
 # Set your OpenAI API key
-OPENAI_API_KEY = "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"  # Replace with your actual OpenAI API key
+OPENAI_API_KEY = ""  # Replace with your actual OpenAI API key
 
 
 def generate_custom_report(request):
