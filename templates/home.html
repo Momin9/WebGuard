@@ -168,8 +168,7 @@
                 <div class="mb-3">
                     <label for="url"></label><input type="url" id="url" name="url" class="form-control"
                                                     placeholder="Website URL" required
-                                                    oninvalid="this.setCustomValidity('Please enter a valid URL')"
-                                                    oninput="this.setCustomValidity('')">
+                                                    >
                 </div>
                 {% if error %}
                 <p style="color: red; font-weight: bold;">{{ error }}</p>
