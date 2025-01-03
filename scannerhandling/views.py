@@ -424,8 +424,9 @@ def scanning(request):
             return render(request, 'home.html', {"error": "No URL found."})
 
         context = {'url': url}
+        print("start scanning")
         scanner(url, context)
-
+        print("finish scanning")
         if 'error' in context['headers']:
             return render(request, 'home.html', {"error": context['headers']['error']})
         return render(request, 'output.html', context)
