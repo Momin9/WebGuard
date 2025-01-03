@@ -418,20 +418,18 @@ def home(request):
     return render(request, 'home.html')
 
 def scanning(request):
-    if request.method == 'POST':
-        url = request.POST.get('url', '').strip()
-        if not url:
-            return render(request, 'home.html', {"error": "No URL found."})
+    url = request.POST.get('url', '').strip()
+    if not url:
+        return render(request, 'home.html', {"error": "No URL found."})
 
-        context = {'url': url}
-        print("start scanning")
-        scanner(url, context)
-        print("finish scanning")
-        if 'error' in context['headers']:
-            return render(request, 'home.html', {"error": context['headers']['error']})
-        return render(request, 'output.html', context)
+    context = {'url': url}
+    print("start scanning")
+    scanner(url, context)
+    print("finish scanning")
+    if 'error' in context['headers']:
+        return render(request, 'home.html', {"error": context['headers']['error']})
+    return render(request, 'output.html', context)
 
-    return render(request, 'home.html')
 def about_us(request):
     return render(request, 'about_us.html')
 
