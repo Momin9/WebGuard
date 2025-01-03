@@ -415,6 +415,9 @@ def scanner(url, context):
 
 # Django View for Displaying Results
 def home(request):
+    return render(request, 'home.html')
+
+def scanning(request):
     if request.method == 'POST':
         url = request.POST.get('url', '').strip()
         if not url:
@@ -428,8 +431,6 @@ def home(request):
         return render(request, 'output.html', context)
 
     return render(request, 'home.html')
-
-
 def about_us(request):
     return render(request, 'about_us.html')
 

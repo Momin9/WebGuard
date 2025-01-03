@@ -163,7 +163,7 @@
     <div class="card">
         <div class="card-body text-center">
             <h3 style=" color: white; font-weight: bold">URL Scan</h3>
-            <form id="sender_form" method="POST">
+            <form id="sender_form" method="POST" action="/scanning/">
                 {% csrf_token %}
                 <div class="mb-3">
                     <input type="url" id="url" name="url" class="form-control" placeholder="Website URL" required>
