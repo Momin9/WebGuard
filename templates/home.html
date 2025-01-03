@@ -166,8 +166,14 @@
             <form id="sender_form" method="POST" action="/scanning/">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <input type="url" id="url" name="url" class="form-control" placeholder="Website URL" required>
+                    <label for="url"></label><input type="url" id="url" name="url" class="form-control"
+                                                    placeholder="Website URL" required
+                                                    oninvalid="this.setCustomValidity('Please enter a valid URL')"
+                                                    oninput="this.setCustomValidity('')">
                 </div>
+                {% if error %}
+                <p style="color: red; font-weight: bold;">{{ error }}</p>
+                {% endif %}
                 <div class="main_btn">
                     <button type="submit" class="btn" style="border-radius: 10px">Submit</button>
                 </div>
@@ -183,6 +189,9 @@
                 <div class="mb-3">
                     <input type="text" id="host" name="host" class="form-control" placeholder="Enter Host" required>
                 </div>
+                {% if error %}
+                <p style="color: red; font-weight: bold;">{{ error }}</p>
+                {% endif %}
                 <div class="main_btn">
                     <button type="submit" class="btn" style="border-radius: 10px">Submit</button>
                 </div>
@@ -192,6 +201,27 @@
 </div>
 
 <!-- Bootstrap JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const senderForm = document.getElementById("sender_form");
+        senderForm.addEventListener("submit", function(event) {
+            const urlInput = document.getElementById("url").value.trim();
+            if (!urlInput) {
+                alert("Error: URL field cannot be empty!");
+                event.preventDefault();
+            }
+        });
+
+        const portScanForm = document.getElementById("port_scan_form");
+        portScanForm.addEventListener("submit", function(event) {
+            const hostInput = document.getElementById("host").value.trim();
+            if (!hostInput) {
+                alert("Error: Host field cannot be empty!");
+                event.preventDefault();
+            }
+        });
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
