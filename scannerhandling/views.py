@@ -417,11 +417,17 @@ def scanner(url, context):
 def home(request):
     return render(request, 'home.html')
 
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 def scanning(request):
+    logger.info(f"Request received: {request.method}, Data: {request.POST}")
     url = request.POST.get('url', '').strip()
     if not url:
-        return render(request, 'home.html', {"error": "No URL found."})
-
+        return render(request, 'home.html', {"error": "No URL provided for scanning."})
     context = {'url': url}
     print("start scanning")
     scanner(url, context)
@@ -429,6 +435,7 @@ def scanning(request):
     if 'error' in context['headers']:
         return render(request, 'home.html', {"error": context['headers']['error']})
     return render(request, 'output.html', context)
+
 
 def about_us(request):
     return render(request, 'about_us.html')
@@ -452,7 +459,9 @@ def feedback(request):
 
 
 import os
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 def generate_custom_report(request):
     report = None
