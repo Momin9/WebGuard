@@ -541,7 +541,7 @@ def port_scan(request):
         host = request.POST.get('host', '').strip()  # Get the host dynamically from the frontend
         open_ports = []
         start_port = 1
-        end_port = 512  # Adjust the range as needed
+        end_port = 1024  # Adjust the range as needed
 
         if not host:
             return render(request, 'port_scan_results.html', {'error': 'Please provide a valid host'})
