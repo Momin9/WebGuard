@@ -538,42 +538,44 @@ def contact_us(request):
 @csrf_exempt
 def port_scan(request):
     if request.method == 'POST':
-        host = request.POST.get('host', '').strip()  # Get the host dynamically from the frontend
+        host = request.POST.get('host', '').strip()
         open_ports = []
         start_port = 1
-        end_port = 512  # Adjust the range as needed
+        end_port = 65535  # Adjust range or use specific ports
 
         if not host:
             return render(request, 'port_scan_results.html', {'error': 'Please provide a valid host'})
-        host = urlparse(host).netloc
+
+        # Extract the host from the URL
+        host = urlparse(host).netloc or host
         if ':' in host:
-            host = host.split(':')[0]  # Remove port if specified in the URL
+            host = host.split(':')[0]
+
         try:
-            # Resolve the hostname to an IP address
+            # Resolve hostname
             ip = socket.gethostbyname(host)
         except socket.gaierror:
             return render(request, 'port_scan_results.html', {'error': f"Hostname resolution failed for {host}"})
+
         try:
             start_time = time()
+            # Scan ports
             for port in range(start_port, end_port + 1):
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(0.1)  # Set a timeout for each connection attempt
-
-                try:
-                    s.connect((ip, port))
-                    open_ports.append(port)
-                except:
-                    pass
-
-                s.close()
-            end_time = time()
-            elapsed_time = end_time - start_time
-        except socket.gaierror:
-            return render(request, 'port_scan_results.html', {'error': f'Hostname resolution failed for {host}'})
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(0.2)  # Adjust timeout
+                    try:
+                        s.connect((ip, port))
+                        open_ports.append(port)
+                    except:
+                        pass
+            elapsed_time = time() - start_time
         except Exception as e:
-            return render(request, 'port_scan_results.html', {'error': f'Error occurred: {str(e)}'})
+            return render(request, 'port_scan_results.html', {'error': f"Error: {str(e)}"})
 
-        return render(request, 'port_scan_results.html', {'host': host, 'ports': open_ports,
-                                                          'elapsed_time': f"Scanning completed in {elapsed_time:.2f} seconds"})
+        return render(request, 'port_scan_results.html', {
+            'host': host,
+            'ports': open_ports,
+            'elapsed_time': f"Scanning completed in {elapsed_time:.2f} seconds",
+        })
 
     return render(request, 'port_scan_results.html', {'error': 'No scan initiated'})
