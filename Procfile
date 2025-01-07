@@ -1,2 +1,2 @@
-release: python3 manage.py migrate
-web: gunicorn smart_home_41612.wsgi --log-file -
+release: python3 manage.py migrate && python3 manage.py collectstatic --no-input
+web: gunicorn vulnerability_scanner.wsgi --log-file -
