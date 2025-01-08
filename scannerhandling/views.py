@@ -1,10 +1,17 @@
+import csv
+import tempfile
+
+from bs4 import BeautifulSoup
 from celery.result import AsyncResult
 from django.conf import settings
 from django.core.mail import send_mail
+from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.template import loader
 from django.views.decorators.csrf import csrf_exempt
+from weasyprint import HTML
 
 from scannerhandling.models import ContactMessage
 from scannerhandling.models import Vulnerability, Feedback
@@ -161,3 +168,71 @@ def check_port_scan_status(request, task_id):
         return JsonResponse({"status": "FAILURE", "error": str(task.result)})
     else:
         return JsonResponse({"status": task.state})
+
+
+def generate_report_page(request):
+    template = loader.get_template('generate_report.html')
+    return HttpResponse(template.render({}, request))
+
+
+def download_pdf(request):
+    title = request.GET.get('title', 'Report')
+    content = request.GET.get('content', '<p>No content provided.</p>')
+
+    # Construct HTML for the PDF
+    html_template = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {{
+                font-family: 'Arial', sans-serif;
+                line-height: 1.6;
+                margin: 20px;
+            }}
+            h1 {{
+                text-align: center;
+                color: #00334e;
+            }}
+            .content {{
+                margin-top: 20px;
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>{title}</h1>
+        <div class="content">{content}</div>
+    </body>
+    </html>
+    """
+
+    # Generate PDF using WeasyPrint
+    pdf_content = HTML(string=html_template).write_pdf()
+
+    # Send the PDF as a response
+    response = HttpResponse(pdf_content, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{title}.pdf"'
+
+    return response
+
+
+def download_csv(request):
+    title = request.GET.get('title', 'Report')
+    content = request.GET.get('content', '<p>No content provided.</p>')
+
+    # Extract plain text from HTML
+    soup = BeautifulSoup(content, "html.parser")
+    plain_text = soup.get_text()
+
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{title}.csv"'
+    writer = csv.writer(response)
+
+    # Write the title and content
+    writer.writerow(['Title', 'Content'])
+    writer.writerow([title, plain_text])
+
+    return response
