@@ -1,4 +1,3 @@
-import requests
 from celery.result import AsyncResult
 from django.conf import settings
 from django.core.mail import send_mail
@@ -86,39 +85,6 @@ def feedback(request):
 
     vulnerabilities = Vulnerability.objects.all()
     return render(request, 'feedback.html', {'vulnerabilities': vulnerabilities})
-
-
-import os
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-
-def generate_custom_report(request):
-    report = None
-    if request.method == 'POST':
-        details = request.POST.get('details', '')
-
-        # Your API logic here
-        url = "https://api.openai.com/v1/chat/completions"
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": "You are an assistant for generating professional reports."},
-                {"role": "user", "content": f"Generate a professional report based on: {details}"}
-            ]
-        }
-        headers = {
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        response = requests.post(url, json=payload, headers=headers)
-        if response.status_code == 200:
-            data = response.json()
-            report = data["choices"][0]["message"]["content"]
-        else:
-            report = "An error occurred. Please try again."
-
-    return render(request, 'generate_custom_report.html', {'report': report})
 
 
 def contact_us(request):
