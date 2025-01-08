@@ -29,6 +29,8 @@ openai
 outcome
 packaging
 propcache
+psycopg
+psycopg2-binary
 pydantic
 pydantic_core
 PySocks
