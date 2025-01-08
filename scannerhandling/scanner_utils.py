@@ -1,3 +1,4 @@
+import logging
 import socket
 from datetime import datetime
 from time import time
@@ -6,6 +7,7 @@ from urllib.parse import urlparse
 import requests
 from bs4 import BeautifulSoup
 from django.db import transaction
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
 from scannerhandling.models import ScanResult
 from scannerhandling.models import Vulnerability
@@ -38,33 +40,100 @@ def headers_reader(url, context):
 
 
 def xss_detection(url, context):
-    payloads = ["<script>alert('XSS')</script>", "<img src=x onerror=alert('XSS')>", "<svg/onload=alert('XSS')>"]
+    print("[INFO] Testing for XSS...")
+    payloads = [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror=alert('XSS')>",
+        "<svg/onload=alert('XSS')>",
+        "<body onload=alert('XSS')>",
+        "'\"><svg/onload=alert(1)>"
+    ]
     context['xss'] = []
-    for payload in payloads:
-        try:
-            response = requests.get(f"{url}?input={payload}")
-            if payload in response.text:
-                context['xss'].append(payload)
-        except requests.RequestException:
-            pass
 
+    try:
+        # Fetch the page content
+        response = requests.get(url, timeout=5)
+        soup = BeautifulSoup(response.text, "html.parser")
+        forms = soup.find_all("form")
+
+        for form in forms:
+            action = form.get("action")
+            post_url = url + action if action else url
+            inputs = form.find_all("input")
+
+            for xss_payload in payloads:
+                data = {input_tag.get("name"): xss_payload for input_tag in inputs if input_tag.get("name")}
+
+                try:
+                    # Submit the form with the XSS payload
+                    response = requests.post(post_url, data=data, timeout=5)
+
+                    # Check if the payload is reflected in the response
+                    if xss_payload in response.text:
+                        context['xss'].append({
+                            'payload': xss_payload,
+                            'vulnerable_url': post_url
+                        })
+                except ConnectionError:
+                    print(f"[ERROR] Failed to connect to {post_url}. Please check the URL or your connection.")
+                except Timeout:
+                    print(f"[ERROR] Connection to {post_url} timed out.")
+                except RequestException as e:
+                    print(f"[ERROR] An error occurred: {e}")
+
+    except ConnectionError:
+        print(f"[ERROR] Failed to connect to {url}. Please check the URL or your connection.")
+    except Timeout:
+        print(f"[ERROR] Connection to {url} timed out.")
+    except RequestException as e:
+        print(f"[ERROR] An error occurred: {e}")
+
+    # Final result in context
     context['xss'] = "Target is not vulnerable!" if not context[
         'xss'] else f"XSS vulnerability detected with payloads: {context['xss']}"
 
 
 def sql_injection_detection(url, context):
-    payloads = ["' OR '1'='1", "' AND 1=1 --", "' UNION SELECT NULL, version() --"]
+    """
+    Detects potential SQL Injection vulnerabilities on a target URL.
+
+    Args:
+        url: The target URL to test for SQL Injection vulnerabilities.
+        context: A dictionary to store the results.
+
+    Returns:
+        None. Updates the context with SQL Injection test results.
+    """
+    payloads = [
+        "' OR '1'='1",
+        "' AND 1=1 --",
+        "' UNION SELECT NULL, version() --",
+        "' OR '1'='1' --",
+        "'; WAITFOR DELAY '0:0:5' --"
+    ]
     context['sqli'] = []
+
     for payload in payloads:
         try:
-            response = requests.get(f"{url}?id={payload}")
-            if "syntax error" in response.text.lower() or "sql" in response.text.lower():
-                context['sqli'].append(payload)
-        except requests.RequestException:
-            pass
+            print(f"[INFO] Testing payload: {payload}")
+            response = requests.get(f"{url}?id={payload}", timeout=5)
 
-    context['sqli'] = "Target is not vulnerable!" if not context[
-        'sqli'] else f"SQL Injection vulnerability detected with payloads: {context['sqli']}"
+            if "syntax error" in response.text.lower() or "sql" in response.text.lower() or "mysql" in response.text.lower():
+                logging.info(f"[ALERT] SQL Injection vulnerability detected with payload: {payload}")
+                print(f"[ALERT] SQL Injection vulnerability detected with payload: {payload}")
+                context['sqli'].append(payload)
+        except requests.ConnectionError:
+            print(f"[ERROR] Failed to connect to {url}. Please check the URL or your connection.")
+        except requests.Timeout:
+            print(f"[ERROR] Connection to {url} timed out.")
+        except requests.RequestException as e:
+            print(f"[ERROR] An error occurred: {e}")
+
+    context['sqli'] = (
+        "Target is not vulnerable!"
+        if not context['sqli']
+        else f"SQL Injection vulnerability detected with payloads: {context['sqli']}"
+    )
 
 
 def js_injection_detection(url, context):
@@ -141,26 +210,45 @@ def port_scanner(url, context):
         # Resolve the hostname to an IP address
         ip = socket.gethostbyname(host)
     except socket.gaierror:
-        context['ports'] = "Hostname resolution failed for {host}"
+        context['ports'] = f"Hostname resolution failed for {host}"
         return
 
     open_ports = []
-    start_port = 1
-    end_port = 512
+    port_details = []
+    common_ports = {
+        21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP', 53: 'DNS', 80: 'HTTP', 110: 'POP3', 143: 'IMAP', 443: 'HTTPS',
+        8080: 'HTTP-alt', 8443: 'HTTPS-alt'
+    }
 
     start_time = time()
 
-    for port in range(start_port, end_port + 1):
+    for port, service in common_ports.items():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.1)  # Set a timeout for each connection attempt
+        s.settimeout(1)  # Set a timeout for each connection attempt
 
         try:
             s.connect((ip, port))
-            open_ports.append(port)
-        except:
-            pass
+            try:
+                banner = s.recv(1024).decode().strip()
+                port_details.append({
+                    'port': port,
+                    'service': service,
+                    'banner': banner or 'No banner retrieved'
+                })
+                print(f"[ALERT] Open port found: {port} ({service}) - Banner: {banner}")
+            except socket.timeout:
+                port_details.append({
+                    'port': port,
+                    'service': service,
+                    'banner': 'No banner retrieved'
+                })
+                print(f"[ALERT] Open port found: {port} ({service}) - No banner retrieved")
 
-        s.close()
+            open_ports.append(port)
+        except (socket.timeout, socket.error):
+            print(f"[ERROR] Failed to connect to {host}:{port}. Please check the URL or your connection.")
+        finally:
+            s.close()
 
     end_time = time()
     elapsed_time = end_time - start_time
@@ -168,11 +256,13 @@ def port_scanner(url, context):
     if open_ports:
         context['ports'] = {
             'open_ports': open_ports,
+            'details': port_details,
             'elapsed_time': f"Scanning completed in {elapsed_time:.2f} seconds"
         }
     else:
         context['ports'] = {
             'open_ports': "No open ports found.",
+            'details': port_details,
             'elapsed_time': f"Scanning completed in {elapsed_time:.2f} seconds"
         }
 

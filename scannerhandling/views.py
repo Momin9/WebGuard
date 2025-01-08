@@ -73,9 +73,6 @@ def output_view(request):
         return render(request, 'output.html', {"error": "Task is not complete yet."})
 
 
-def about_us(request):
-    return render(request, 'about_us.html')
-
 
 def feedback(request):
     if request.method == 'POST':
