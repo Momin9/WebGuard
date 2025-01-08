@@ -18,6 +18,7 @@ click-repl
 cryptography
 cssselect2
 distro
+django-environ
 dj-database-url
 Django
 django-celery-results
