@@ -90,6 +90,13 @@
             margin-bottom: 10px;
             line-height: 1.6;
         }
+
+        #task-status {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+        }
     </style>
 </head>
 <body>
@@ -103,24 +110,68 @@
         <span class="terminal-title">Port Scanner</span>
     </div>
     <div class="terminal-body">
+        <div id="task-status">Scanning in progress... Please wait.</div>
         <h1>Port Scanning Results</h1>
         <h2>Scanned Host:</h2>
-        <p>{{ host }}</p>
+        <p id="host">{{ host }}</p>
         <h3>Open Ports</h3>
-        <ul>
-            {% if ports == "No open ports found." %}
-                <li>No open ports detected.</li>
-            {% else %}
-                {% for port in ports %}
-                    <li>Port {{ port }} is open</li>
-                {% endfor %}
-            {% endif %}
+        <ul id="ports">
+            <li>No results yet. Waiting for scan to complete...</li>
         </ul>
         <h3>Scan Time</h3>
-        <p>{{ elapsed_time }} seconds</p>
+        <p id="elapsed-time">-</p>
     </div>
 </div>
 <script>
+    const taskId = "{{ task_id }}"; // Task ID passed from the backend
+
+    function updateResults(data) {
+        const taskStatusElement = document.getElementById('task-status');
+        const portsElement = document.getElementById('ports');
+        const elapsedTimeElement = document.getElementById('elapsed-time');
+        const hostElement = document.getElementById('host');
+
+        if (data.status === "PENDING") {
+            taskStatusElement.textContent = "Scanning in progress... Please wait.";
+        } else if (data.status === "SUCCESS") {
+            taskStatusElement.textContent = "Scanning completed successfully!";
+            elapsedTimeElement.textContent = data.result.elapsed_time;
+
+            // Update Open Ports
+            portsElement.innerHTML = "";
+            if (data.result.ports.length > 0) {
+                data.result.ports.forEach(port => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Port ${port} is open`;
+                    portsElement.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = "No open ports detected.";
+                portsElement.appendChild(listItem);
+            }
+
+            // Stop polling
+            clearInterval(pollingInterval);
+        } else if (data.status === "FAILURE") {
+            taskStatusElement.textContent = "Scanning failed. Please try again.";
+            clearInterval(pollingInterval);
+        }
+    }
+
+    function checkTaskStatus() {
+        fetch(`/check_port_scan_status/${taskId}/`)
+            .then(response => response.json())
+            .then(data => updateResults(data))
+            .catch(error => console.error("Error checking task status:", error));
+    }
+
+    // Start polling for task status
+    let pollingInterval;
+    if (taskId) {
+        pollingInterval = setInterval(checkTaskStatus, 5000); // Poll every 5 seconds
+    }
+
     function closeTerminal() {
         window.location.href = '/';
     }

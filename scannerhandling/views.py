@@ -5,15 +5,18 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from celery.result import AsyncResult
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from scannerhandling.models import ScanResult, ContactMessage
 from scannerhandling.models import Vulnerability, Feedback
+from .tasks import run_scanner_task, run_port_scan_task
 
 
 def headers_reader(url, context):
@@ -151,7 +154,7 @@ def port_scanner(url, context):
 
     open_ports = []
     start_port = 1
-    end_port = 120
+    end_port = 512
 
     start_time = time()
 
@@ -426,16 +429,46 @@ logger = logging.getLogger(__name__)
 def scanning(request):
     logger.info(f"Request received: {request.method}, Data: {request.POST}")
     url = request.POST.get('url', '').strip()
+
     if not url:
         return render(request, 'home.html', {"error": "No URL provided for scanning."})
-    context = {'url': url}
-    print("start scanning")
-    scanner(url, context)
-    print("finish scanning")
-    print(context['headers'])
-    if 'error' in context['headers']:
-        return render(request, 'home.html', {"error": context['headers']['error']})
-    return render(request, 'output.html', context)
+
+    # Start the Celery task
+    task = run_scanner_task.delay(url)
+
+    # Inform the user that the task is running
+    return render(request, 'home.html', {
+        "info": "Scanning task has been started. Please wait...",
+        "task_id": task.id  # Pass the task ID to the template
+    })
+
+
+def check_task_status(request, task_id):
+    task = AsyncResult(task_id)  # Get the task result using its ID
+
+    if task.state == 'PENDING':
+        return JsonResponse({"status": "PENDING", "info": "Task is still running..."})
+    elif task.state == 'SUCCESS':
+        # Task completed successfully, return the result
+        return JsonResponse({"status": "SUCCESS", "result": task.result})
+    elif task.state == 'FAILURE':
+        # Task failed, return the error message
+        return JsonResponse({"status": "FAILURE", "error": str(task.result)})
+    else:
+        # Any other state (e.g., RETRY)
+        return JsonResponse({"status": task.state})
+
+
+def output_view(request):
+    # Fetch results from the database or task result
+    task_id = request.GET.get('task_id')
+    task = AsyncResult(task_id)
+
+    if task.state == 'SUCCESS':
+        context = task.result
+        return render(request, 'output.html', context)
+    else:
+        return render(request, 'output.html', {"error": "Task is not complete yet."})
 
 
 def about_us(request):
@@ -539,43 +572,28 @@ def contact_us(request):
 def port_scan(request):
     if request.method == 'POST':
         host = request.POST.get('host', '').strip()
-        open_ports = []
-        start_port = 1
-        end_port = 65535  # Adjust range or use specific ports
 
         if not host:
             return render(request, 'port_scan_results.html', {'error': 'Please provide a valid host'})
 
-        # Extract the host from the URL
-        host = urlparse(host).netloc or host
-        if ':' in host:
-            host = host.split(':')[0]
+        # Start the background task
+        task = run_port_scan_task.delay(host)
 
-        try:
-            # Resolve hostname
-            ip = socket.gethostbyname(host)
-        except socket.gaierror:
-            return render(request, 'port_scan_results.html', {'error': f"Hostname resolution failed for {host}"})
-
-        try:
-            start_time = time()
-            # Scan ports
-            for port in range(start_port, end_port + 1):
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(0.2)  # Adjust timeout
-                    try:
-                        s.connect((ip, port))
-                        open_ports.append(port)
-                    except:
-                        pass
-            elapsed_time = time() - start_time
-        except Exception as e:
-            return render(request, 'port_scan_results.html', {'error': f"Error: {str(e)}"})
-
+        # Inform the user the task is running and provide the task ID
         return render(request, 'port_scan_results.html', {
-            'host': host,
-            'ports': open_ports,
-            'elapsed_time': f"Scanning completed in {elapsed_time:.2f} seconds",
+            'info': "Port scanning task has been started. Please wait...",
+            'task_id': task.id,  # Pass the task ID for polling
         })
 
     return render(request, 'port_scan_results.html', {'error': 'No scan initiated'})
+def check_port_scan_status(request, task_id):
+    task = AsyncResult(task_id)
+
+    if task.state == 'PENDING':
+        return JsonResponse({"status": "PENDING", "info": "Task is still running..."})
+    elif task.state == 'SUCCESS':
+        return JsonResponse({"status": "SUCCESS", "result": task.result})
+    elif task.state == 'FAILURE':
+        return JsonResponse({"status": "FAILURE", "error": str(task.result)})
+    else:
+        return JsonResponse({"status": task.state})

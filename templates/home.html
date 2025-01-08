@@ -201,6 +201,60 @@
 
 <!-- Bootstrap JS -->
 <script>
+    // Function to check task status
+    function checkTaskStatus(taskId) {
+        fetch(`/check_task_status/${taskId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const statusElement = document.getElementById("task-status");
+                const resultsElement = document.getElementById("scan-results");
+
+                if (data.status === "PENDING") {
+                    // Update status message
+                    statusElement.textContent = "Scanning in progress... Please wait.";
+                } else if (data.status === "SUCCESS") {
+                    // Update status message
+                    statusElement.textContent = "Scan complete!";
+                    // Display the results
+                    resultsElement.innerHTML = `<pre>${JSON.stringify(data.result, null, 2)}</pre>`;
+                    // Stop polling
+                    clearInterval(pollingInterval);
+                } else if (data.status === "FAILURE") {
+                    // Update status message
+                    statusElement.textContent = "Scan failed. Please try again.";
+                    console.error("Task failed:", data.error);
+                    clearInterval(pollingInterval);
+                }
+            })
+            .catch(error => console.error("Error checking task status:", error));
+    }
+
+    // Start polling for task status
+    const taskId = "{{ task_id }}"; // Task ID passed from the backend
+    let pollingInterval;
+    if (taskId) {
+        pollingInterval = setInterval(() => checkTaskStatus(taskId), 5000); // Poll every 5 seconds
+    }
+</script>
+
+<div class="container-fluid">
+    <!-- Other content -->
+
+    <!-- Task Status Section -->
+    <div id="task-status" style="text-align: center; font-weight: bold; margin-top: 20px; color: #005780;">
+        {% if info %}
+        <p>{{ info }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Scan Results Section -->
+    <div id="scan-results" style="margin-top: 20px; background: #f7f7f7; padding: 20px; border-radius: 8px;">
+        <!-- Results will be dynamically injected here -->
+    </div>
+</div>
+
+
+<script>
     document.addEventListener("DOMContentLoaded", () => {
         const senderForm = document.getElementById("sender_form");
         senderForm.addEventListener("submit", function(event) {
