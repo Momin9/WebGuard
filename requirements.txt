@@ -36,7 +36,9 @@ pydantic_core
 PySocks
 python-dotenv
 python-nmap
+redis
 requests
+rq
 selenium
 sniffio
 sortedcontainers
