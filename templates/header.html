@@ -24,7 +24,6 @@
             padding: 0.5rem 1rem;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .navbar-brand {
@@ -50,14 +49,15 @@
             text-align: center;
             white-space: nowrap;
             overflow: hidden;
-            height: 50px;
+            height: 55px; /* Adjusted height for visibility */
+            line-height: 50px; /* Align text vertically */
             background-color: var(--navbar-bg);
         }
 
         .scrolling-text span {
             display: inline-block;
             padding-left: 100%;
-            animation: scroll-text 20s linear infinite;
+            animation: scroll-text 30s linear infinite;
         }
 
         @keyframes scroll-text {
@@ -113,8 +113,8 @@
 </head>
 <body onload="startScrollingText()">
 <nav class="navbar navbar-expand-lg">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/" style="color: white;">
+    <div class="container-fluid" style="margin-top: 55px">
+        <a class="navbar-brand" href="/" style="color: white; margin-bottom: 55px; font-weight: bold; font-size: 3rem">
             <img src="https://flowbite.com/docs/images/logo.svg" alt="WebGuard Logo">
             WebGuard
         </a>
@@ -125,16 +125,16 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
+                    <a class="nav-link" style="font-weight: bold; margin-bottom: 55px" href="/">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/contact-us/">Contact Us</a>
+                    <a class="nav-link" style="font-weight: bold; margin-bottom: 55px" href="/contact-us/">Contact Us</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/feedback/">Feedback</a>
+                    <a class="nav-link" style="font-weight: bold; margin-bottom: 55px" href="/feedback/">Feedback</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/generate-report/">Report</a>
+                    <a class="nav-link" style="font-weight: bold; margin-bottom: 50px" href="/generate-report/">Report</a>
                 </li>
             </ul>
         </div>
