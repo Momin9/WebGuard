@@ -8,11 +8,13 @@ async-timeout
 attrs
 backports.zoneinfo
 beautifulsoup4
+celery
 certifi
 charset-normalizer
 distro
 dj-database-url
 Django
+django-celery-results
 exceptiongroup
 frozenlist
 git-filter-repo
