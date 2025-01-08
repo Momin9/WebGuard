@@ -11,6 +11,7 @@ beautifulsoup4
 certifi
 charset-normalizer
 distro
+dj-database-url
 Django
 exceptiongroup
 frozenlist
