@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 from celery import shared_task
 
-from .views import scanner
+from scannerhandling.scanner_utils import scanner
 
 
 @shared_task
